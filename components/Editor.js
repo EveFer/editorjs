@@ -4,7 +4,7 @@ import { useEffect, useId, useRef } from 'react'
 
 import Embed from '@editorjs/embed'
 import Table from '@editorjs/table'
-import Paragraph from '@editorjs/paragraph'
+import Paragraph from 'editorjs-paragraph-with-alignment'
 import List from '@editorjs/list'
 import Warning from '@editorjs/warning'
 import Code from '@editorjs/code'
@@ -18,16 +18,16 @@ import CheckList from '@editorjs/checklist'
 import Delimiter from '@editorjs/delimiter'
 import InlineCode from '@editorjs/inline-code'
 import SimpleImage from '@editorjs/simple-image'
+import Tooltip from 'editorjs-tooltip'
+import ColorPlugin from 'editorjs-text-color-plugin'
+import MermaidTool from 'editorjs-mermaid'
+import EditorJSLayout from 'editorjs-layout'
 
 export default function Editor () {
   const holder = useId()
   const editor = useRef()
-
   useEffect(() => {
-    console.log(editor.current)
-    console.log(holder)
     if (editor.current) {
-      console.log('Hello')
       editor.current = new EditorJS({
         data: {
           blocks: [
@@ -140,13 +140,15 @@ export default function Editor () {
             },
             {
               type: 'image',
-              id: '9802bjaAA2',
               data: {
-                url: 'https://picsum.photos/200/300',
-                caption: '',
-                stretched: false,
-                withBorder: true,
-                withBackground: false
+                file: {
+                  url: 'https://www.tesla.com/tesla_theme/assets/img/_vehicle_redesign/roadster_and_semi/roadster/hero.jpg',
+                  key: 'wferty'
+                },
+                caption: 'Roadster // tesla.com',
+                withBorder: false,
+                withBackground: false,
+                stretched: false
               }
             },
             {
@@ -167,6 +169,27 @@ export default function Editor () {
         },
         holder,
         tools: {
+          image: {
+            class: ImageTool,
+            actions: [
+              {
+                action: (name) => {
+                  console.log(name)
+                }
+              }
+            ],
+            config: {
+              endpoints: {
+                byFile: 'http://localhost:8080/api/images' // Your backend file uploader endpoint
+              }
+
+            }
+          },
+          mermaid: MermaidTool,
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true
+          },
           /**
              * Each Tool is a Plugin. Pass them via 'class' option with necessary settings {@link docs/tools.md}
              */
@@ -178,12 +201,6 @@ export default function Editor () {
             },
             shortcut: 'CMD+SHIFT+H'
           },
-
-          /**
-             * Or pass class directly without any configuration
-             */
-          image: SimpleImage,
-
           list: {
             class: List,
             inlineToolbar: true,
@@ -193,6 +210,26 @@ export default function Editor () {
           checklist: {
             class: CheckList,
             inlineToolbar: true
+          },
+          Color: {
+            class: ColorPlugin, // if load from CDN, please try: window.ColorPlugin
+            config: {
+              colorCollections: ['#EC7878', '#9C27B0', '#673AB7', '#3F51B5', '#0070FF', '#03A9F4', '#00BCD4', '#4CAF50', '#8BC34A', '#CDDC39', '#FFF'],
+              defaultColor: '#FF1300',
+              type: 'text',
+              customPicker: true // add a button to allow selecting any colour
+            }
+          },
+          tooltip: {
+            class: Tooltip,
+            config: {
+              location: 'left',
+              highlightColor: '#FFEFD5',
+              underline: true,
+              backgroundColor: '#154360',
+              textColor: '#FDFEFE',
+              holder: 'editorId'
+            }
           },
 
           quote: {
@@ -226,7 +263,15 @@ export default function Editor () {
 
           linkTool: LinkTool,
 
-          embed: Embed,
+          embed: {
+            class: Embed,
+            config: {
+              services: {
+                youtube: true,
+                coub: true
+              }
+            }
+          },
 
           table: {
             class: Table,
@@ -235,6 +280,9 @@ export default function Editor () {
           },
           raw: RawTool
 
+        },
+        onReady: () => {
+          MermaidTool.config({ theme: 'neutral' })
         }
       })
     }
